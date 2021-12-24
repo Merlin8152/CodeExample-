@@ -1,0 +1,35 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "PZ_SkillTree",
+	"Description": "Tenebrium",
+	"Category": "Other",
+	"CreatedBy": "MB & Merlin",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "PZ_SkillTree",
+			"Type": "Runtime",
+			"LoadingPhase": "PreDefault",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Win32"
+			]
+		},
+
+		{
+			"Name": "PZ_SkillTreeEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+
+		}
+	]
+}
