@@ -3,7 +3,7 @@
 
 #include "Nodes/BaseTreeElement/PZ_SkillTreeRBaseTreeElement.h"
 
-
+#include "SkillTreeContextItems/PZ_SkillTreeContextItem_Base.h"
 #include "PZ_SkillTreeContext.h"
 
 
@@ -31,7 +31,19 @@ UPZ_SkillTreeRBaseTreeElement* UPZ_SkillTreeRBaseTreeElement::ChoseNextNode(UPZ_
 
 
 
+
+
+
+
+
+
+
+
+
+
 #if WITH_EDITORONLY_DATA
+
+
 
 void UPZ_SkillTreeRBaseTreeElement::ResetNavigationNode()
 {

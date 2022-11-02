@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "../../PZ_SkillTreeNodesInfo.h"
+
 #include "PZ_SkillTreeRBaseTreeElement.generated.h"
 
 
@@ -12,7 +13,7 @@
 
 class UPZ_SkillTreeContext;
 class UPZ_SkillTreeRUINode;
-
+class UPZ_SkillTreeContextItem_Base;
 
 
 
@@ -49,6 +50,17 @@ public:
 	virtual UPZ_SkillTreeRBaseTreeElement* ChoseNextNode(UPZ_SkillTreeContext* SkillTreeContext) const;//-1 means no next nodes
 
 
+	//-----Context-----//
+
+	virtual bool IsNeedCreateContext() { return false; };
+	virtual UPZ_SkillTreeContextItem_Base* CreateContext(UPZ_SkillTreeContext* SkillTreeContext) { return nullptr; };
+
+
+	template<class T>
+	void GetInRNodesByClass_WithContext(TArray<UPZ_SkillTreeRBaseTreeElement*>& InArray);
+	template<class T>
+	void GetOutRNodesByClass_WithContext(TArray<UPZ_SkillTreeRBaseTreeElement*>& InArray);
+	//-----------------//
 #if WITH_EDITORONLY_DATA
 
 	virtual void ResetNavigationNode();
@@ -126,3 +138,42 @@ inline void UPZ_SkillTreeRBaseTreeElement::GetOutRNodesByClass(TArray<T*>& InArr
 		}
 	}
 }
+
+
+
+
+template<class T>
+inline void UPZ_SkillTreeRBaseTreeElement::GetInRNodesByClass_WithContext(TArray<UPZ_SkillTreeRBaseTreeElement*>& InArray)
+{
+	for (auto ParentNode : ParentNodes)
+	{
+		T* CastedNode = Cast<T>(ParentNode);
+		if (CastedNode && ParentNode->IsNeedCreateContext())
+		{
+			InArray.AddUnique(ParentNode);
+		}
+		else
+		{
+			ParentNode->GetInRNodesByClass_WithContext<T>(InArray);
+		}
+	}
+}
+
+template<class T>
+inline void UPZ_SkillTreeRBaseTreeElement::GetOutRNodesByClass_WithContext(TArray<UPZ_SkillTreeRBaseTreeElement*>& InArray)
+{
+	for (auto NextNode : NextNodes)
+	{
+		T* CastedNode = Cast<T>(NextNode);
+		if (CastedNode && NextNode->IsNeedCreateContext())
+		{
+			InArray.AddUnique(NextNode);
+		}
+		else
+		{
+			NextNode->GetOutRNodesByClass_WithContext<T>(InArray);
+		}
+	}
+}
+
+

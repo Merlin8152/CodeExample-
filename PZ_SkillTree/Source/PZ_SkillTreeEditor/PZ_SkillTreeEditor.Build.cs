@@ -3,6 +3,7 @@
 using UnrealBuildTool;
 using System.IO;
 
+
 public class PZ_SkillTreeEditor : ModuleRules
 {
 	public PZ_SkillTreeEditor(ReadOnlyTargetRules Target) : base(Target)
@@ -10,23 +11,22 @@ public class PZ_SkillTreeEditor : ModuleRules
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		bEnforceIWYU = true;
 
+
 		PublicIncludePaths.AddRange(
 			new string[] {
 				Path.Combine(ModuleDirectory, "Public")
-
 				// ... add public include paths required here ...
 			}
 			);
 				
-		
 		PrivateIncludePaths.AddRange(
 			new string[] {
-				// ... add other private include paths required here ...
 				Path.Combine(ModuleDirectory, "Private")
-
+				// ... add other private include paths required here ...
 			}
 			);
 			
+		
 		
 		PublicDependencyModuleNames.AddRange(
 			new string[]
@@ -36,7 +36,6 @@ public class PZ_SkillTreeEditor : ModuleRules
 			}
 			);
 			
-		
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
@@ -58,6 +57,7 @@ public class PZ_SkillTreeEditor : ModuleRules
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
+		
 		
 		
 		DynamicallyLoadedModuleNames.AddRange(

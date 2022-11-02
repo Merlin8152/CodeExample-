@@ -5,12 +5,13 @@
 #include "CoreMinimal.h"
 #include "Nodes/BaseNode/PZ_SkillTreeRBaseNode.h"
 
+
 #include "PZ_SkillTreeRSkillNode.generated.h"
 
-
-class UPZ_SkillTreeRConditionNode;
-class UPZ_SkillTreeRSkillActionNode;
-
+//
+//class UPZ_SkillTreeRConditionNode;
+//class UPZ_SkillTreeRSkillActionNode;
+class UPZ_SkillTreeRLayerNode;
 
 
 UCLASS(Blueprintable)
@@ -29,7 +30,8 @@ public:
 
 	virtual bool OnExecute(UPZ_SkillTreeContext* SkillTreeContext) override;
 	
-
+	virtual bool IsNeedCreateContext() override { return true; };
+	virtual UPZ_SkillTreeContextItem_Base* CreateContext(UPZ_SkillTreeContext* SkillTreeContext) override;
 	//......................................................................................................//
 
 
@@ -61,13 +63,14 @@ public:
 		bool IsUIRootNode = false; // нода относительно которой строится граф в UIPosition mode
 
 
-	UPROPERTY(BlueprintReadOnly)
-		UPZ_SkillTreeRConditionNode* ConditionNode = nullptr;
+	//UPROPERTY(BlueprintReadOnly)
+	//	UPZ_SkillTreeRConditionNode* ConditionNode = nullptr;
 
-	UPROPERTY(BlueprintReadOnly)
-		UPZ_SkillTreeRSkillActionNode* SkillActionNode = nullptr;
+	//UPROPERTY(BlueprintReadOnly)
+	//	UPZ_SkillTreeRSkillActionNode* SkillActionNode = nullptr;
 
-
+	UPROPERTY (EditDefaultsOnly, BlueprintReadWrite/*BlueprintReadOnly*/)
+		TArray<UPZ_SkillTreeRLayerNode*> Layers;
 
 //only for editor settings
 #if WITH_EDITORONLY_DATA

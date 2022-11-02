@@ -8,7 +8,8 @@
 
 class UPZ_SkillTreeEdNode_Skill;
 class UPZ_SkillTreeRSkillNode;
-
+class SPZ_Layers;
+	//class UPZ_SkillTreeRLayerNode;
 
 class SPZ_SkillTreeSNode_Skill: public SPZ_SkillTreeSNode_Base
 {
@@ -28,7 +29,7 @@ public:
 	virtual void UpdateGraphNode_ResetStage() override;
 	virtual void CreateNodeWidget_TopPart() override;
 	virtual void CreateNodeWidget_BottomPart() override;
-
+	virtual void CreateNodeWidget_RightPart() override;
 
 
 	virtual void GetAdditionalNodeInfo(TArray<FString>& AdditionalInfoArray) override;
@@ -42,16 +43,15 @@ public:
 
 
 
-	virtual void AddCondition(TSharedPtr<SGraphNode> ConditionWidget);
-	virtual void AddUnlockAction(TSharedPtr<SGraphNode> UnlockActionWidget);
+	virtual void AddLayer(TSharedPtr<SGraphNode> LayerWidget);
 
-
-	virtual void MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter) override;
+	virtual void MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty) override;
 protected:
 
 
-	TSharedPtr<SVerticalBox> ConditionsBox;
-	TSharedPtr<SVerticalBox> UnlockActionBox;
+
+	TSharedPtr<SVerticalBox> LayerBox;
+	TSharedPtr<SPZ_Layers> LayersWidget;
 
 public:
 

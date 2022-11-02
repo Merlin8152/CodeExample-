@@ -72,8 +72,8 @@ const EVisibility SPZ_SkillTreeSNode_Custom::GetTopPinsBoxVisibility() const
 
 
 
-void SPZ_SkillTreeSNode_Custom::MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter)
+void SPZ_SkillTreeSNode_Custom::MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty)
 {
-	Super::MoveTo(NewPosition, NodeFilter);
+	Super::MoveTo(NewPosition, NodeFilter, bMarkDirty);
 
 }

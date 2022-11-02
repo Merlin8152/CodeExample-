@@ -67,9 +67,9 @@ const EVisibility SPZ_SkillTreeUIPositionSNode_UI::GetTopPinsBoxVisibility() con
 }
 
 
-void SPZ_SkillTreeUIPositionSNode_UI::MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter)
+void SPZ_SkillTreeUIPositionSNode_UI::MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty)
 {
-	SPZ_SkillTreeUIPositionSNode_Base::MoveTo(NewPosition, NodeFilter);
+	SPZ_SkillTreeUIPositionSNode_Base::MoveTo(NewPosition, NodeFilter, bMarkDirty);
 	/*if (!RUINode->IsUIRootNode)
 	{
 		SPZ_SkillTreeUIPositionSNode_Base::MoveTo(NewPosition, NodeFilter);

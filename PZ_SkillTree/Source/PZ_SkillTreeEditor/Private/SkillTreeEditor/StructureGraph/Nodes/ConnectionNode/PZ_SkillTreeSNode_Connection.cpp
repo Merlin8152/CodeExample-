@@ -77,8 +77,8 @@ const EVisibility SPZ_SkillTreeSNode_Connection::GetBottomPinsBoxVisibility() co
 	return EdConnectionNode->IsHaveInConnection(FPZ_SkillTreeEditorConstant::PinCategory_Main) ? EVisibility::Hidden : EVisibility::Visible;
 }
 
-void SPZ_SkillTreeSNode_Connection::MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter)
+void SPZ_SkillTreeSNode_Connection::MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty)
 {
-	Super::MoveTo(NewPosition, NodeFilter);
+	Super::MoveTo(NewPosition, NodeFilter, bMarkDirty);
 
 }

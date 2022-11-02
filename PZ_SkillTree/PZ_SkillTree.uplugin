@@ -3,7 +3,7 @@
 	"Version": 1,
 	"VersionName": "1.0",
 	"FriendlyName": "PZ_SkillTree",
-	"Description": "Tenebrium",
+	"Description": "Atrophia",
 	"Category": "Other",
 	"CreatedBy": "MB & Merlin",
 	"CreatedByURL": "",
@@ -21,15 +21,22 @@
 			"LoadingPhase": "PreDefault",
 			"WhitelistPlatforms": [
 				"Win64",
-				"Win32"
+				"Win32",
+				"Android",
+				"XboxOne",
+				"PS4",
+				"Linux",
+				"Mac"
 			]
 		},
-
 		{
 			"Name": "PZ_SkillTreeEditor",
 			"Type": "Editor",
-			"LoadingPhase": "Default"
-
+			"LoadingPhase": "PostEngineInit",
+			"WhitelistPlatforms": [
+				"Win64",
+				"Win32"
+			]
 		}
 	]
 }

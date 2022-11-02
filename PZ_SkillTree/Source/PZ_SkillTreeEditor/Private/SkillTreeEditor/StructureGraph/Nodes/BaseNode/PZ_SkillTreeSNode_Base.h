@@ -8,7 +8,6 @@
 
 class UPZ_SkillTreeEdNode_Base;
 
-
 class SPZ_SkillTreeSNode_Base : public SGraphNode
 {
 	typedef SGraphNode Super;
@@ -29,6 +28,7 @@ public:
 	virtual void CreateNodeWidget();
 	virtual void CreateNodeWidget_TopPart() {};
 	virtual void CreateNodeWidget_BottomPart() {};
+	virtual void CreateNodeWidget_RightPart() {};
 
 	void CreateCommentBubble();
 
@@ -65,7 +65,7 @@ public:
 
 	FReply OnMouseDown(const FGeometry& SenderGeometry, const FPointerEvent& MouseEvent);
 
-	virtual void MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter) override;
+	virtual void MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty) override;
 
 protected:
 	TArray< TSharedPtr<SGraphNode> > SubNodes;
@@ -75,6 +75,7 @@ protected:
 	TSharedPtr<SOverlay> NodeWidget;
 	TSharedPtr<SOverlay> NodeWidget_TopPart;
 	TSharedPtr<SOverlay> NodeWidget_BottomPart;
+	TSharedPtr<SOverlay> NodeWidget_RightPart;
 	TSharedPtr<SVerticalBox> AdditionalNodeInfo;
 	TSharedPtr<SErrorText> ErrorText;
 	TArray<FString> AdditionalNodeInfo_LinesArray;

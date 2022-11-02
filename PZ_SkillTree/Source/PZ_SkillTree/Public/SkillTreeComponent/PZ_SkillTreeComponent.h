@@ -82,8 +82,6 @@ public:
 		UPZ_SkillTree_Editor* GetSkillTreeEditorByName(FString GraphName) const;
 
 
-	void OnUpdateNextNode_Connection(UPZ_SkillTreeRConnectionNode* InConnectionNode);
-	void OnUpdatePrevNode_Connection(UPZ_SkillTreeRConnectionNode* InConnectionNode);
 //Blueprint Values
 public:
 

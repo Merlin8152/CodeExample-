@@ -74,3 +74,4 @@ protected:
 	FOnGetNodeTextStyle OnGetNodeTextStyle;
 	FOnGetRowStyle OnGetRowStyle;
 };
+

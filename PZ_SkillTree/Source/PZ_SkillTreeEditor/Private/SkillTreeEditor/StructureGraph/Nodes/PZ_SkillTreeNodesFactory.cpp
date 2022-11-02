@@ -59,6 +59,11 @@ TSharedPtr<class SGraphNode> FPZ_SkillTreeGraphNodeFactory::CreateNode(UEdGraphN
 			return SNew(SPZ_SkillTreeSNode_Connection, LNodeConnection);
 		}
 
+		if (UPZ_SkillTreeEdNode_Layer* LNodeLayer = Cast<UPZ_SkillTreeEdNode_Layer>(LNodeBase))
+		{
+			return SNew(SPZ_SkillTreeSNode_Layer, LNodeLayer);
+		}
+
 		return SNew(SPZ_SkillTreeSNode_Base, LNodeBase);
 
 	}

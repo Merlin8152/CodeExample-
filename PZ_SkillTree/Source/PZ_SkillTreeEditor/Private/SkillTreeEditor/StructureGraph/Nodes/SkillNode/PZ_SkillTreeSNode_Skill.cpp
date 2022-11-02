@@ -8,6 +8,7 @@
 #include "NodeFactory.h"
 #include "EditorStyleSet.h"
 #include "../../../PZ_SkillTreeEditorStyle.h"
+#include "../../CustomWidgets/PZ_SkillTreeLayers.h"
 #include "SGraphPanel.h"
 
 
@@ -28,51 +29,82 @@ void SPZ_SkillTreeSNode_Skill::Construct(const FArguments& InArgs, UPZ_SkillTree
 
 void SPZ_SkillTreeSNode_Skill::UpdateGraphNode_ResetStage()
 {
-	if (ConditionsBox.IsValid())
+	//if (ConditionsBox.IsValid())
+	//{
+	//	ConditionsBox->ClearChildren();
+	//}
+	//else
+	//{
+	//	SAssignNew(ConditionsBox, SVerticalBox);
+	//}
+
+	//if (UnlockActionBox.IsValid())
+	//{
+	//	UnlockActionBox->ClearChildren();
+	//}
+	//else
+	//{
+	//	SAssignNew(UnlockActionBox, SVerticalBox);
+	//}
+
+	if (LayerBox.IsValid())
 	{
-		ConditionsBox->ClearChildren();
+		LayerBox->ClearChildren();
 	}
 	else
 	{
-		SAssignNew(ConditionsBox, SVerticalBox);
+		SAssignNew(LayerBox, SVerticalBox);
 	}
 
-	if (UnlockActionBox.IsValid())
+	if (LayersWidget.IsValid())
 	{
-		UnlockActionBox->ClearChildren();
+		LayersWidget->UpdateLayers();
 	}
 	else
 	{
-		SAssignNew(UnlockActionBox, SVerticalBox);
+		SAssignNew(LayersWidget, SPZ_Layers).SkillNode(EdSkillNode);
 	}
 
 
 	if (EdSkillNode)
 	{
 		
-		if (EdSkillNode->UnlockAction)
-		{
-			TSharedPtr<SGraphNode> NewNode = FNodeFactory::CreateNodeWidget(EdSkillNode->UnlockAction);
-			if (OwnerGraphPanelPtr.IsValid())
-			{
-				NewNode->SetOwner(OwnerGraphPanelPtr.Pin().ToSharedRef());
-				OwnerGraphPanelPtr.Pin()->AttachGraphEvents(NewNode);
-			}
-			AddUnlockAction(NewNode);
-			NewNode->UpdateGraphNode();
-		}
-		
+		//if (EdSkillNode->UnlockAction)
+		//{
+		//	TSharedPtr<SGraphNode> NewNode = FNodeFactory::CreateNodeWidget(EdSkillNode->UnlockAction);
+		//	if (OwnerGraphPanelPtr.IsValid())
+		//	{
+		//		NewNode->SetOwner(OwnerGraphPanelPtr.Pin().ToSharedRef());
+		//		OwnerGraphPanelPtr.Pin()->AttachGraphEvents(NewNode);
+		//	}
+		//	AddUnlockAction(NewNode);
+		//	NewNode->UpdateGraphNode();
+		//}
+		//
 
-		
-		if (EdSkillNode->Conditions)
+		//
+		//if (EdSkillNode->Conditions)
+		//{
+		//	TSharedPtr<SGraphNode> NewNode = FNodeFactory::CreateNodeWidget(EdSkillNode->Conditions);
+		//	if (OwnerGraphPanelPtr.IsValid())
+		//	{
+		//		NewNode->SetOwner(OwnerGraphPanelPtr.Pin().ToSharedRef());
+		//		OwnerGraphPanelPtr.Pin()->AttachGraphEvents(NewNode);
+		//	}
+		//	AddCondition(NewNode);
+		//	NewNode->UpdateGraphNode();
+		//}
+
+
+		if ((EdSkillNode->Layers.Num() > 0) && (EdSkillNode->CurrentLayer >= 0))
 		{
-			TSharedPtr<SGraphNode> NewNode = FNodeFactory::CreateNodeWidget(EdSkillNode->Conditions);
+			TSharedPtr<SGraphNode> NewNode = FNodeFactory::CreateNodeWidget(EdSkillNode->Layers[EdSkillNode->CurrentLayer]);
 			if (OwnerGraphPanelPtr.IsValid())
 			{
 				NewNode->SetOwner(OwnerGraphPanelPtr.Pin().ToSharedRef());
 				OwnerGraphPanelPtr.Pin()->AttachGraphEvents(NewNode);
 			}
-			AddCondition(NewNode);
+			AddLayer(NewNode);
 			NewNode->UpdateGraphNode();
 		}
 		
@@ -81,17 +113,29 @@ void SPZ_SkillTreeSNode_Skill::UpdateGraphNode_ResetStage()
 
 void SPZ_SkillTreeSNode_Skill::CreateNodeWidget_TopPart()
 {
-	NodeWidget_TopPart->AddSlot()
-		[
-			ConditionsBox.ToSharedRef()
-		];
+	//NodeWidget_TopPart->AddSlot()
+	//	[
+	//		ConditionsBox.ToSharedRef()
+	//	];
 }
 
 void SPZ_SkillTreeSNode_Skill::CreateNodeWidget_BottomPart()
 {
 	NodeWidget_BottomPart->AddSlot()
 		[
-			UnlockActionBox.ToSharedRef()
+			//UnlockActionBox.ToSharedRef()
+			LayerBox.ToSharedRef()
+		];
+}
+
+void SPZ_SkillTreeSNode_Skill::CreateNodeWidget_RightPart()
+{
+	if (EdSkillNode->Layers.Num() <= 1) return;
+	NodeWidget_RightPart->AddSlot()
+		[
+			LayersWidget.ToSharedRef()
+			//SAssignNew(LayersWidget, SPZ_Layers)
+			//.SkillNode(EdSkillNode)
 		];
 }
 
@@ -133,30 +177,21 @@ const EVisibility SPZ_SkillTreeSNode_Skill::GetTopPinsBoxVisibility() const
 }
 
 
-void SPZ_SkillTreeSNode_Skill::AddCondition(TSharedPtr<SGraphNode> ConditionWidget)
+
+void SPZ_SkillTreeSNode_Skill::AddLayer(TSharedPtr<SGraphNode> LayerWidget)
 {
-	ConditionsBox->AddSlot().AutoHeight()
+	LayerBox->AddSlot().AutoHeight()
 		[
-			ConditionWidget.ToSharedRef()
+			LayerWidget.ToSharedRef()
 		];
 
-	AddSubNode(ConditionWidget);
-}
-
-void SPZ_SkillTreeSNode_Skill::AddUnlockAction(TSharedPtr<SGraphNode> UnlockActionWidget)
-{
-	UnlockActionBox->AddSlot().AutoHeight()
-		[
-			UnlockActionWidget.ToSharedRef()
-		];
-
-	AddSubNode(UnlockActionWidget);
+	AddSubNode(LayerWidget);
 }
 
 
-void SPZ_SkillTreeSNode_Skill::MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter)
+void SPZ_SkillTreeSNode_Skill::MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty)
 {
 	RSkillNode->TempUIPositionOnCompile = NewPosition;
 
-	SPZ_SkillTreeSNode_Base::MoveTo(NewPosition, NodeFilter);
+	SPZ_SkillTreeSNode_Base::MoveTo(NewPosition, NodeFilter, bMarkDirty);
 }

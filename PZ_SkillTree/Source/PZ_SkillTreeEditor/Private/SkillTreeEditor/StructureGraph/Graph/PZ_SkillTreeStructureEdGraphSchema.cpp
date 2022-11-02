@@ -274,6 +274,16 @@ void UPZ_SkillTreeEdGraphSchema::GetGraphNodeContextActions(FGraphContextMenuBui
 					Actions, ContextMenuBuilder.OwnerOfTemporaries);
 			break;
 
+		case ESkillTreeNodeType::LayerNode:
+			AddAction_SubNode<UPZ_SkillTreeEdNode_Layer, UPZ_SkillTreeRLayerNode>
+				(FText::FromString("Layer"), 
+				FText::FromString("Add layer to Node"),
+				FText::FromString("Layer to setup contitions and events"), 
+				ParentNode, 
+				Actions, 
+				ContextMenuBuilder.OwnerOfTemporaries);
+			break;
+
 		default:
 			break;
 		} 

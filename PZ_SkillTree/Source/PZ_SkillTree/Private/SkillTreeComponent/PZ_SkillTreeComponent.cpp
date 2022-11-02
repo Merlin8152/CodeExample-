@@ -22,11 +22,77 @@ UPZ_SkillTreeComponent::UPZ_SkillTreeComponent()
 
 void UPZ_SkillTreeComponent::BeginPlay()
 {
+	Super::BeginPlay();
+
 	SkillContexts.Empty();
 
 	for (auto SkillTree : SkillGraphs) 
 	{
 		SkillContexts.Add(SkillTree.Key,UPZ_SkillTreeManager::CreateSkillTreeContext(SkillTree.Value, GetOwner(), this ));
+	}
+
+	// need refactoring, difficult to understand
+	for (const auto& LContext : SkillContexts)
+	{
+		for (const auto& LInContextConnection : LContext.Value->ImplementSkillTree->InConnectionNodes)
+		{
+			for (const auto& RContext : SkillContexts)
+			{
+				if (LContext == RContext) continue;
+
+				for (const auto& LOutContextConnection : RContext.Value->ImplementSkillTree->OutConnectionNodes)
+				{
+					if (LOutContextConnection.Key == LInContextConnection.Key)
+					{
+						TArray<UPZ_SkillTreeContextItem_Base*> InConnectionContextArray;
+						TArray<UPZ_SkillTreeContextItem_Base*> OutConnectionContextArray;
+
+						//InConnectionContextArray prepare
+						if (LInContextConnection.Value->IsNeedCreateContext())
+						{
+							InConnectionContextArray.Add(LContext.Value->ContextNodeInfo2[LInContextConnection.Value->MyIndex]);
+						}
+						else
+						{
+							TArray<UPZ_SkillTreeRBaseTreeElement*> InNodesWithContext;
+							LInContextConnection.Value->GetOutRNodesByClass_WithContext<UPZ_SkillTreeRBaseTreeElement>(InNodesWithContext);
+							for (const auto& InNodeWithContext : InNodesWithContext)
+							{
+								InConnectionContextArray.Add(LContext.Value->ContextNodeInfo2[InNodeWithContext->MyIndex]);
+							}
+						}
+
+						//OutConnectionContextArray prepare						
+						if (LOutContextConnection.Value->IsNeedCreateContext())
+						{
+							OutConnectionContextArray.Add(LContext.Value->ContextNodeInfo2[LOutContextConnection.Value->MyIndex]);
+						}
+						else
+						{
+							TArray<UPZ_SkillTreeRBaseTreeElement*> OutNodesWithContext;
+							LOutContextConnection.Value->GetInRNodesByClass_WithContext<UPZ_SkillTreeRBaseTreeElement>(OutNodesWithContext);
+							for (const auto& OutNodeWithContext : OutNodesWithContext)
+							{
+								OutConnectionContextArray.Add(LContext.Value->ContextNodeInfo2[OutNodeWithContext->MyIndex]);
+							}
+						}
+
+						//Add links
+						for (const auto& InConnectionNode : InConnectionContextArray)
+						{
+							for (const auto& OutConnectionNode : OutConnectionContextArray)
+							{
+								InConnectionNode->ParentContextNodes.Add(OutConnectionNode);
+								OutConnectionNode->NextContextNodes.Add(InConnectionNode);
+							}
+						}
+
+					}
+				}
+
+			}
+
+		}
 	}
 
 }
@@ -46,28 +112,6 @@ UPZ_SkillTree_Editor* UPZ_SkillTreeComponent::GetSkillTreeEditorByName(FString G
 	if (SkillGraphs.Contains(GraphName)) return SkillGraphs[GraphName];
 
 	return nullptr;
-}
-
-void UPZ_SkillTreeComponent::OnUpdateNextNode_Connection(UPZ_SkillTreeRConnectionNode* InConnectionNode)
-{
-	for (const auto& Context : SkillContexts)
-	{
-		if (Context.Value->ImplementSkillTree->InConnectionNodes.Contains(InConnectionNode->ConnectionName))
-		{
-			Context.Value->UpdateNextNodes(Context.Value->ImplementSkillTree->InConnectionNodes[InConnectionNode->ConnectionName]);
-		}
-	}
-}
-
-void UPZ_SkillTreeComponent::OnUpdatePrevNode_Connection(UPZ_SkillTreeRConnectionNode* InConnectionNode)
-{
-	for (const auto& Context : SkillContexts)
-	{
-		if (Context.Value->ImplementSkillTree->OutConnectionNodes.Contains(InConnectionNode->ConnectionName))
-		{
-			Context.Value->UpdatePreviousNodes(Context.Value->ImplementSkillTree->OutConnectionNodes[InConnectionNode->ConnectionName]);
-		}
-	}
 }
 
 

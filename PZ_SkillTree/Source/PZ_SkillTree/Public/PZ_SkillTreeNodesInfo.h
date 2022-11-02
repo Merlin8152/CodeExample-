@@ -22,6 +22,7 @@ enum class ESkillTreeNodeType : uint8
 	SwitcherNode		UMETA(DisplayName = "Switcher Node"),
 	ConnectionNode		UMETA(DisplayName = "Connection Node"),
 	CustomNode		    UMETA(DisplayName = "Custom Node"),
+	LayerNode			UMETA(DisplayName = "Layer Node"),
 	UINode	        	UMETA(DisplayName = "UI Node")
 };
 

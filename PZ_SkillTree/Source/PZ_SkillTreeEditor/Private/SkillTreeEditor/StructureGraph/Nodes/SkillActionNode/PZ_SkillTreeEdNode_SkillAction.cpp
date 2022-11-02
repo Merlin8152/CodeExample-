@@ -39,6 +39,15 @@ ESkillTreeNodeType UPZ_SkillTreeEdNode_SkillAction::GetNodeType() const
 	return ESkillTreeNodeType::SkillActionNode;
 }
 
+void UPZ_SkillTreeEdNode_SkillAction::CompileThisNodeInfo(UPZ_SkillTree_Editor* SkillTree)
+{
+	if( !IsValid(RNode) ) return;
+
+	RNode->ResetNavigationNode();
+	RNode->NodeType = GetNodeType();
+	RNode->Rename(nullptr, SkillTree, REN_DontCreateRedirectors | REN_DoNotDirty);
+}
+
 
 
 

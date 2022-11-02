@@ -4,7 +4,7 @@
 #include "SkillTreeEditor/StructureGraph/Nodes/BaseNode/PZ_SkillTreeSNode_Base.h"
 
 #include "PZ_SkillTreeEdNode_Base.h"
-
+//#include "../../CustomWidgets/PZ_SkillTreeLayers.h"
 
 #include "SCommentBubble.h"
 #include "../PZ_SSkillTreeGraphPin.h"
@@ -58,6 +58,9 @@ void SPZ_SkillTreeSNode_Base::UpdateGraphNode()
 	{
 		ErrorImageSize = ErrorImage->GetImageSize();
 	}
+
+	const float TestSize = 20.0f;
+	
 
 	//Create Border
 	this->ContentScale.Bind(this, &SGraphNode::GetContentScale);
@@ -146,6 +149,7 @@ void SPZ_SkillTreeSNode_Base::UpdateGraphNode()
 						SAssignNew(RightNodeBox, SVerticalBox)
 					]
 
+
 			]
 		];
 
@@ -173,73 +177,83 @@ void SPZ_SkillTreeSNode_Base::CreateNodeWidget()
 
 	NodeWidget->AddSlot()
 		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot()
-				.AutoHeight()
+			SNew(SHorizontalBox) 
+			+
+			SHorizontalBox::Slot().AutoWidth()
 				[
-					SAssignNew(NodeWidget_TopPart, SOverlay)
-				]
-			+ SVerticalBox::Slot()
-				.AutoHeight()
-				[
+				SNew(SVerticalBox)
+				+ SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						SAssignNew(NodeWidget_TopPart, SOverlay)
+					]
+				+ SVerticalBox::Slot()
+					.AutoHeight()
+					[
 
-					SNew(SBorder)
-						.BorderImage(FEditorStyle::GetBrush("Graph.StateNode.ColorSpill"))
-						.BorderBackgroundColor(GetNodeTitleColor())
-						.HAlign(HAlign_Center)
-						.VAlign(VAlign_Center)
-						.Visibility(EVisibility::SelfHitTestInvisible)
-						[
-							SNew(SHorizontalBox)
+						SNew(SBorder)
+							.BorderImage(FEditorStyle::GetBrush("Graph.StateNode.ColorSpill"))
+							.BorderBackgroundColor(GetNodeTitleColor())
+							.HAlign(HAlign_Center)
+							.VAlign(VAlign_Center)
+							.Visibility(EVisibility::SelfHitTestInvisible)
+							[
+								SNew(SHorizontalBox)
 
 
-							+ SHorizontalBox::Slot()
-								.Padding(4.0f, 4.0f)
-								[
-									SNew(SVerticalBox)
-									+ SVerticalBox::Slot()
-										.AutoHeight()
-										[
-											SNew(SOverlay)
+								+ SHorizontalBox::Slot()
+									.Padding(4.0f, 4.0f)
+									[
+										SNew(SVerticalBox)
+										+ SVerticalBox::Slot()
+											.AutoHeight()
+											[
+												SNew(SOverlay)
 
-											+SOverlay::Slot()
-												.HAlign(HAlign_Left)
-												.VAlign(VAlign_Center)
-												[
-													SNew(SImage)
-													.Image(NodeImage)
-												]
-											+ SOverlay::Slot()
-												.HAlign(HAlign_Right)
-												.VAlign(VAlign_Center)
-												.Padding(ImageSize.X, 0, 0, 0)
-												[
-													SNew(STextBlock)
-													.Text(GetNodeName())
-													.Font(FSlateFontInfo(FPaths::EngineContentDir() / TEXT("Slate/Fonts/Roboto-Bold.ttf"), 16))
-												]
+												+SOverlay::Slot()
+													.HAlign(HAlign_Left)
+													.VAlign(VAlign_Center)
+													[
+														SNew(SImage)
+														.Image(NodeImage)
+													]
+												+ SOverlay::Slot()
+													.HAlign(HAlign_Right)
+													.VAlign(VAlign_Center)
+													.Padding(ImageSize.X, 0, 0, 0)
+													[
+														SNew(STextBlock)
+														.Text(GetNodeName())
+														.Font(FSlateFontInfo(FPaths::EngineContentDir() / TEXT("Slate/Fonts/Roboto-Bold.ttf"), 16))
+													]
 
-										]
-									+ SVerticalBox::Slot()
-										.AutoHeight()
-										[
-											SAssignNew(AdditionalNodeInfo, SVerticalBox)
-										]
+											]
+										+ SVerticalBox::Slot()
+											.AutoHeight()
+											[
+												SAssignNew(AdditionalNodeInfo, SVerticalBox)
+											]
 
-								]
+									]
 
-						]
-				]
+							]
+					]
 
-			+ SVerticalBox::Slot()
-				.AutoHeight()
-				[
-					SAssignNew(NodeWidget_BottomPart, SOverlay)
-				]
+				+ SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						SAssignNew(NodeWidget_BottomPart, SOverlay)
+					]
+			] 
+		+ SHorizontalBox::Slot().AutoWidth()
+			[
+				SAssignNew(NodeWidget_RightPart, SOverlay)
+			]
 		];
 
 	CreateNodeWidget_TopPart();
 	CreateNodeWidget_BottomPart();
+	CreateNodeWidget_RightPart();
 	FillAdditionalNodeInfo();
 }
 
@@ -557,9 +571,9 @@ FReply SPZ_SkillTreeSNode_Base::OnMouseDown(const FGeometry& SenderGeometry, con
 	return FReply::Unhandled();
 }
 
-void SPZ_SkillTreeSNode_Base::MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter)
+void SPZ_SkillTreeSNode_Base::MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty)
 {
-	Super::MoveTo(NewPosition, NodeFilter);
+	Super::MoveTo(NewPosition, NodeFilter, bMarkDirty);
 
 	EdBaseNode->RNode->TempUIPositionOnCompile = NewPosition;
 

@@ -37,7 +37,7 @@ public:
 
 
 
-	virtual void MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter) override;
+	virtual void MoveTo(const FVector2D& NewPosition, FNodeSet& NodeFilter, bool bMarkDirty) override;
 
 	virtual FLinearColor GetNodeBackgroundColor_Default() const override;
 

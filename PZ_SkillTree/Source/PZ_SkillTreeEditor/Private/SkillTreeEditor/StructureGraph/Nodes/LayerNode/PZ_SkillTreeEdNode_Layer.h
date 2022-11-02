@@ -4,24 +4,26 @@
 
 #include "CoreMinimal.h"
 #include "../BaseNode/PZ_SkillTreeEdNode_Base.h"
-#include "PZ_SkillTreeEdNode_Skill.generated.h"
+#include "PZ_SkillTreeEdNode_Layer.generated.h"
 
-
-
+/**
+ * 
+ */
 UCLASS()
-class UPZ_SkillTreeEdNode_Skill : public UPZ_SkillTreeEdNode_Base
+class UPZ_SkillTreeEdNode_Layer : public UPZ_SkillTreeEdNode_Base
 {
 	GENERATED_BODY()
-
+	
 //Constructor
 public:
 
-	UPZ_SkillTreeEdNode_Skill();
+	UPZ_SkillTreeEdNode_Layer();
 
-	UPROPERTY()
-		TArray<UPZ_SkillTreeEdNode_Base*> Layers;
+	UPROPERTY ()
+		UPZ_SkillTreeEdNode_Base* Conditions;
 
-	int CurrentLayer = 0;
+	UPROPERTY ()
+		UPZ_SkillTreeEdNode_Base* UnlockAction;
 
 //c++ public Methods
 public:
@@ -31,16 +33,13 @@ public:
 	virtual bool CanUserDeleteNode() const override;
 
 
-	virtual bool IsHaveUINode() const override;
-
 	virtual ESkillTreeNodeType GetNodeType() const override;
 
 	virtual void CompileThisNodeInfo(UPZ_SkillTree_Editor* SkillTree) override;
-	virtual void CompileError(UPZ_SkillTree_Editor* SkillTree) override;
 
 	virtual void OnNodeDoubleClicked() override;
 	virtual void OnChangedProperties(const FName& PropertyName) const override;
-	
+
 
 	virtual void OnSubNodeAdded(UPZ_SkillTreeEdNode_Base* SubNode) override;
 	virtual void OnSubNodeRemoved(UPZ_SkillTreeEdNode_Base* SubNode) override;
@@ -51,15 +50,9 @@ public:
 
 	virtual bool CanContainsSubNode(UClass* SubNodeClass) override;
 
-	virtual void PostPlacedNewNode() override;
-
-
-	void SetLayer(int LayerIndex);
 
 protected:
-
 	void CreateAddUnlockEventsSubMenu(class UToolMenu* Menu, UEdGraph* Graph) const;
 	void CreateAddConditionSubMenu(class UToolMenu* Menu, UEdGraph* Graph) const;
-	void CreateAddLayerSubMenu(class UToolMenu* Menu, UEdGraph* Graph) const;
 
 };

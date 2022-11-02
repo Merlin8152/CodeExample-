@@ -12,4 +12,5 @@
 #include "Nodes/ConditionNode/PZ_SkillTreeEdNode_Condition.h"
 #include "Nodes/SwitcherNode/PZ_SkillTreeEdNode_Switcher.h"  
 #include "Nodes/CustomNode/PZ_SkillTreeEdNode_Custom.h"  
+#include "Nodes/LayerNode/PZ_SkillTreeEdNode_Layer.h"  
 #include "Nodes/ConnectionNode/PZ_SkillTreeEdNode_Connection.h"  

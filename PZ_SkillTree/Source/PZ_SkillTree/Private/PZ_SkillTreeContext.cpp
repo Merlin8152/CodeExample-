@@ -34,7 +34,6 @@
 
 
 
-
 /////////////////////////////////////////////// Initialize methods ///////////////////////////////////////////////
 
 
@@ -58,15 +57,46 @@ void UPZ_SkillTreeContext::InitContext(UPZ_SkillTree_Editor* SkillTree, AActor* 
 		InitializeBlackboard();
 	}
 
-	for (auto Node : SkillTree->CompiledNodes) 
+
+
+	TArray<UPZ_SkillTreeRBaseTreeElement*> RootNodes;
+	SkillTree->GetRootNodes(RootNodes);
+
+	TArray<UPZ_SkillTreeRBaseTreeElement*> CreatedNodes;
+	for (const auto& LRootNode : RootNodes)
 	{
-		ContextNodeInfo.Add(Node->MyIndex, FContextNodeInfo(Node, this));
+		CreateAndLinkContextNodes(CreatedNodes, LRootNode);
 	}
 
+}
+
+void UPZ_SkillTreeContext::CreateAndLinkContextNodes(TArray<UPZ_SkillTreeRBaseTreeElement*>& CreatedNodes, UPZ_SkillTreeRBaseTreeElement* RootNode, UPZ_SkillTreeContextItem_Base* ParentContext)
+{
+	if (CreatedNodes.Contains(RootNode)) return;
+	UPZ_SkillTreeContextItem_Base* ContextItem = RootNode->CreateContext(this);
+	UPZ_SkillTreeContextItem_Base* LParentContext = ParentContext;
+	if (ContextItem)
+	{
+		ContextItem->SkillTreeContext = this;
+		ContextNodeInfo2.Add(RootNode->MyIndex, ContextItem);
+		
+		if (ParentContext)
+		{
+			LParentContext->NextContextNodes.Add(ContextItem);
+			ContextItem->ParentContextNodes.Add(LParentContext);
+		}
+		LParentContext = ContextItem;
+	}
+
+	CreatedNodes.Add(RootNode);
 
 
-	CurrentNode = ImplementSkillTree->CompiledNodes[0];
-
+	TArray<UPZ_SkillTreeRBaseTreeElement*> NextContextNodes;
+	RootNode->GetOutRNodesByClass_WithContext<UPZ_SkillTreeRBaseTreeElement>(NextContextNodes);
+	for (const auto& LNextNode : NextContextNodes)
+	{
+		CreateAndLinkContextNodes(CreatedNodes, LNextNode, LParentContext);
+	}
 }
 
 bool UPZ_SkillTreeContext::InitializeBlackboard()
@@ -280,74 +310,6 @@ FVector2D UPZ_SkillTreeContext::GetNodeUILocationByIndex(int NodeIndex)
 
 
 
-void UPZ_SkillTreeContext::UpdateNextNodes(UPZ_SkillTreeRBaseTreeElement* AnchorNode)
-{
-	TArray<UPZ_SkillTreeRBaseTreeElement*> NextNodes;
-	GetNextNodesToUpdate(AnchorNode, NextNodes);
-
-	for (const auto& NextNode : NextNodes)
-	{
-		if (auto SkillNode = Cast<UPZ_SkillTreeRSkillNode>(NextNode))
-		{
-			ContextNodeInfo[SkillNode->MyIndex].CanBeOpen = true;
-			OnCanBeOpenChangeBind.Broadcast(SkillNode->MyIndex);
-		}
-
-		if (auto ConnectionNode = Cast<UPZ_SkillTreeRConnectionNode>(NextNode))
-		{
-			STComponent->OnUpdateNextNode_Connection(ConnectionNode);
-		}
-	}
-
-
-}
-
-
-
-
-void UPZ_SkillTreeContext::UpdatePreviousNodes(UPZ_SkillTreeRBaseTreeElement* AnchorNode)
-{
-	// UPZ_SkillTreeRSwitcherNode должы апдейтится вплоть до конца дерева, нужно это учесть при переделке контекта 
-	TArray<UPZ_SkillTreeRBaseTreeElement*> PrevNodes;
-	GetPrevNodesToUpdate(AnchorNode, PrevNodes);
-
-	for (const auto& PrevNode : PrevNodes)
-	{
-		if (auto ParentSwitcherNode = Cast<UPZ_SkillTreeRSwitcherNode>(PrevNode))
-		{
-			ContextNodeInfo[ParentSwitcherNode->MyIndex].SwichNodeCount++;
-
-			if (ContextNodeInfo[ParentSwitcherNode->MyIndex].SwichNodeCount >= ParentSwitcherNode->MaxIncludeNodeCount)
-			{
-				TArray<UPZ_SkillTreeRBaseTreeElement*> SwitcherNextNodes = GetNextNodes(ParentSwitcherNode);
-
-				for (auto NextNode : SwitcherNextNodes)
-				{
-
-					if (auto SkillNode = Cast<UPZ_SkillTreeRSkillNode>(NextNode))
-					{
-						if (ContextNodeInfo[SkillNode->MyIndex].CurrentSkillLvl == 0)
-						{
-							ContextNodeInfo[SkillNode->MyIndex].CanBeOpen = false;
-							OnCanBeOpenChangeBind.Broadcast(SkillNode->MyIndex);
-						}
-					}
-
-
-				}
-
-			}
-
-		}
-
-		if (auto ConnectionNode = Cast<UPZ_SkillTreeRConnectionNode>(PrevNode))
-		{
-			STComponent->OnUpdatePrevNode_Connection(ConnectionNode);
-		}
-	}
-
-}
-
 
 
 
@@ -421,8 +383,11 @@ bool UPZ_SkillTreeContext::CanExecuteEvent(UPZ_SkillTreeREventNode* EventNode)
 
 		if (auto SkillNode = Cast<UPZ_SkillTreeRSkillNode>(EventSubNode))
 		{
+			if (UPZ_SkillTreeContextItem_Skill* SkillContext = Cast<UPZ_SkillTreeContextItem_Skill>(ContextNodeInfo2[SkillNode->MyIndex]))
+			{
+				if (!CanExecuteSkillNode(SkillNode, SkillContext->CurrentSkillLayer)) return false;
+			}
 
-			if (!CanExecuteSkillNode(SkillNode)) return false;
 		}	
 
 	}
@@ -430,24 +395,6 @@ bool UPZ_SkillTreeContext::CanExecuteEvent(UPZ_SkillTreeREventNode* EventNode)
 	return true;
 }
 
-void UPZ_SkillTreeContext::GetRootNodeInfos(TArray<FContextNodeInfo>& NodeInfoArray)
-{
-	TArray<UPZ_SkillTreeRBaseTreeElement*> RootNodes;
-	ImplementSkillTree->GetRootNodes(RootNodes);
-
-	for (const auto& RootNode : RootNodes)
-	{
-		NodeInfoArray.Add(ContextNodeInfo[RootNode->MyIndex]);
-	}
-}
-
-const FContextNodeInfo& UPZ_SkillTreeContext::GetRootUINodeInfo()
-{
-	UPZ_SkillTreeRBaseNode* UIRoot = ImplementSkillTree->GetUIRootNode();
-	check(IsValid(UIRoot));
-
-	return ContextNodeInfo[UIRoot->MyIndex];
-}
 
 
 
@@ -476,47 +423,7 @@ bool UPZ_SkillTreeContext::CanExecuteEventByName(const FName& EventName)
 
 void UPZ_SkillTreeContext::ExecuteNode(UPZ_SkillTreeRBaseTreeElement* SkillNode)
 {
-
-	if (auto Node = Cast<UPZ_SkillTreeRSkillNode>(SkillNode)) 
-	{
-		CurrentNode = ImplementSkillTree->CompiledNodes[Node->MyIndex];
-
-		
-
-		if (auto SkillActionNode = Cast<UPZ_SkillTreeRSkillActionNode>(Node->SkillActionNode))
-		{
-			SkillActionNode->OnExecute(this);
-		}
-	
-
-	}
-
-
-	if (auto ActiveNode = Cast<UPZ_SkillTreeRActiveSkillNode>(SkillNode))
-	{
-		ContextNodeInfo[ActiveNode->MyIndex].CurrentSkillLvl++;
-		OnLvlChangeBind.Broadcast(ActiveNode->MyIndex);
-
-		if (ContextNodeInfo[ActiveNode->MyIndex].CurrentSkillLvl >= ActiveNode->MaxSkillLevel && !ActiveNode->CanAlwaysUpdate)
-		{
-			ContextNodeInfo[ActiveNode->MyIndex].IsOpen = true;
-			OnIsOpenChangeBind.Broadcast(ActiveNode->MyIndex);
-		}
-
-	}
-	else if(auto PassiveNode = Cast<UPZ_SkillTreeRPassiveSkillNode>(SkillNode))
-	{
-		ContextNodeInfo[PassiveNode->MyIndex].CurrentSkillLvl++;
-		OnLvlChangeBind.Broadcast(PassiveNode->MyIndex);
-		ContextNodeInfo[PassiveNode->MyIndex].IsOpen = true;
-		OnIsOpenChangeBind.Broadcast(PassiveNode->MyIndex);
-	}
-	
-
-
-	UpdateNextNodes(CurrentNode);
-	UpdatePreviousNodes(CurrentNode);
-
+	ContextNodeInfo2[SkillNode->MyIndex]->OnExecute();
 }
 
 
@@ -545,34 +452,39 @@ bool UPZ_SkillTreeContext::ExecudeEventNode(FName EventNodeName)
 
 }
 
-bool UPZ_SkillTreeContext::CanExecuteSkillNode(UPZ_SkillTreeRSkillNode* InSkillNode)
+bool UPZ_SkillTreeContext::CanExecuteSkillNode(UPZ_SkillTreeRSkillNode* InSkillNode, int Layer)
 {
 	if (!IsValid(InSkillNode)) return false;
 
-	// сделать этот кусок отдельной функцией т.к используется в другом CanExecuteEventBy
-	if (IsValid(InSkillNode->ConditionNode))
+	if( InSkillNode->Layers.Num() && IsValid(InSkillNode->Layers[Layer]->ConditionNode) )
 	{
-		if (auto Condition = Cast<UPZ_SkillTreeRConditionNode>(InSkillNode->ConditionNode))
+		if (auto Condition = Cast<UPZ_SkillTreeRConditionNode>(InSkillNode->Layers[Layer]->ConditionNode))
 		{
+			bool IsOpen = false;
+			bool CanBeOpen = false;		
+			UPZ_SkillTreeContextItem_Skill* SkillContext = Cast<UPZ_SkillTreeContextItem_Skill>(ContextNodeInfo2[InSkillNode->MyIndex]);
+			if (SkillContext)
+			{
+				IsOpen = SkillContext->IsOpen;
+				CanBeOpen = SkillContext->CanBeOpen;			
+			}
 
-			bool IsOpen = ContextNodeInfo[InSkillNode->MyIndex].IsOpen;
-			bool CanBeOpen = ContextNodeInfo[InSkillNode->MyIndex].CanBeOpen;
-
-			if (!Condition->OnExecute(this) ||
-				IsOpen || (!CanBeOpen && (!InSkillNode->AlwaysCanBeOpen && /*!InSkillNode->IsRootNode &&*/ IsHavePrevSkillNode(InSkillNode)))
-				) return false;
-
+			if (!Condition->OnExecute(this) || IsOpen || (!CanBeOpen && (!InSkillNode->AlwaysCanBeOpen && /*!InSkillNode->IsRootNode &&*/ IsHavePrevSkillNode(InSkillNode)))) return false;
 		}
-
 	}
 	else
 	{
-		bool IsOpen = ContextNodeInfo[InSkillNode->MyIndex].IsOpen;
-		bool CanBeOpen = ContextNodeInfo[InSkillNode->MyIndex].CanBeOpen;
+		bool IsOpen = false;
+		bool CanBeOpen = false;
+		UPZ_SkillTreeContextItem_Skill* SkillContext = Cast<UPZ_SkillTreeContextItem_Skill>(ContextNodeInfo2[InSkillNode->MyIndex]);
+		if (SkillContext)
+		{
+			IsOpen = SkillContext->IsOpen;
+			CanBeOpen = SkillContext->CanBeOpen;
+		}
 
 		if (IsOpen || (!CanBeOpen && (!InSkillNode->AlwaysCanBeOpen && /*!InSkillNode->IsRootNode &&*/ IsHavePrevSkillNode(InSkillNode)))) return false;
 	}
-
 
 	return true;
 }
@@ -662,6 +574,16 @@ typename TDataClass::FDataType UPZ_SkillTreeContext::GetValue(FBlackboard::FKey 
 }
 
 
+
+void UPZ_SkillTreeContext::OnContextExecuteProcedure(UPZ_SkillTreeContextItem_Base* InContextItem)
+{
+	OnContextExecute.Broadcast(InContextItem->SkillTreeNode->MyIndex);
+}
+
+void UPZ_SkillTreeContext::OnContextUpdateProcedure(UPZ_SkillTreeContextItem_Base* InContextItem)
+{
+	OnContextUpdate.Broadcast(InContextItem->SkillTreeNode->MyIndex);
+}
 
 FBlackboard::FKey UPZ_SkillTreeContext::GetKeyID(const FName& KeyName) const
 {
@@ -807,102 +729,4 @@ void UPZ_SkillTreeContext::DestroyValues()
 	ValueOffsets.Reset();
 	ValueMemory.Reset();
 
-}
-
-UPZ_SkillTreeRUINode const* FContextNodeInfo::GetRUINode() const
-{
-	if (UPZ_SkillTreeRBaseNode* BaseNode = Cast<UPZ_SkillTreeRBaseNode>(RNode)) return BaseNode->UINode;
-
-	return nullptr;
-}
-
-void FContextNodeInfo::GetNextNodesInfo(TArray<FContextNodeInfo>& NodeInfoArray)
-{
-	TArray<UPZ_SkillTreeRBaseTreeElement*> NextRNodes;
-	RNode->GetOutRNodesByClass<UPZ_SkillTreeRBaseTreeElement>(NextRNodes);
-
-	for (const auto& NextRNode : NextRNodes)
-	{
-		NodeInfoArray.AddUnique(OwnerContext->ContextNodeInfo[NextRNode->MyIndex]);
-	}
-}
-
-void FContextNodeInfo::GetPrevNodesInfo(TArray<FContextNodeInfo>& NodeInfoArray)
-{
-	TArray<UPZ_SkillTreeRBaseTreeElement*> PrevRNodes;
-	RNode->GetInRNodesByClass<UPZ_SkillTreeRBaseTreeElement>(PrevRNodes);
-
-	for (const auto& PrevRNode : PrevRNodes)
-	{
-		NodeInfoArray.AddUnique(OwnerContext->ContextNodeInfo[PrevRNode->MyIndex]);
-	}
-}
-
-void FContextNodeInfo::GetNextNodesInfo_WithUI(TArray<FContextNodeInfo>& NodeInfoArray)
-{
-	//Если у ноды есть UI, ищем по внутренним связям (иначе как обычно)
-	UPZ_SkillTreeRBaseNode* RBaseNode = Cast<UPZ_SkillTreeRBaseNode>(RNode);
-	if (RBaseNode && IsValid(RBaseNode->UINode))
-	{
-		TArray<UPZ_SkillTreeRUINode*> NextRUINodes;
-		RBaseNode->UINode->GetOutRNodesByClass<UPZ_SkillTreeRUINode>(NextRUINodes);
-
-		for (const auto& NextRUINode : NextRUINodes)
-		{
-			NodeInfoArray.AddUnique(OwnerContext->ContextNodeInfo[NextRUINode->RNodeLink->MyIndex]);
-		}
-	}
-	else
-	{
-
-		TArray<UPZ_SkillTreeRBaseNode*> NextRNodes;
-		RNode->GetOutRNodesByClass<UPZ_SkillTreeRBaseNode>(NextRNodes);
-
-		for (const auto& NextRNode : NextRNodes)
-		{
-			if (IsValid(NextRNode->UINode))
-			{
-				NodeInfoArray.AddUnique(OwnerContext->ContextNodeInfo[NextRNode->MyIndex]);
-			}
-			else
-			{
-				GetNextNodesInfo_WithUI(NodeInfoArray);
-			}
-
-		}
-	}
-}
-
-void FContextNodeInfo::GetPrevNodesInfo_WithUI(TArray<FContextNodeInfo>& NodeInfoArray)
-{
-	//Если у ноды есть UI, ищем по внутренним связям (иначе как обычно)
-	UPZ_SkillTreeRBaseNode* RBaseNode = Cast<UPZ_SkillTreeRBaseNode>(RNode);
-	if (RBaseNode && IsValid(RBaseNode->UINode))
-	{
-		TArray<UPZ_SkillTreeRUINode*> PrevRUINodes;
-		RBaseNode->UINode->GetInRNodesByClass<UPZ_SkillTreeRUINode>(PrevRUINodes);
-
-		for (const auto& PrevRUINode : PrevRUINodes)
-		{
-			NodeInfoArray.AddUnique(OwnerContext->ContextNodeInfo[PrevRUINode->RNodeLink->MyIndex]);
-		}
-	}
-	else
-	{
-		TArray<UPZ_SkillTreeRBaseNode*> PrevRNodes;
-		RNode->GetInRNodesByClass<UPZ_SkillTreeRBaseNode>(PrevRNodes);
-
-		for (const auto& PrevRNode : PrevRNodes)
-		{
-			if (IsValid(PrevRNode->UINode))
-			{
-				NodeInfoArray.AddUnique(OwnerContext->ContextNodeInfo[PrevRNode->MyIndex]);
-			}
-			else
-			{
-				GetPrevNodesInfo_WithUI(NodeInfoArray);
-			}
-
-		}
-	}
 }

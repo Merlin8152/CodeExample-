@@ -33,6 +33,7 @@ public:
 
 	virtual ESkillTreeNodeType GetNodeType() const override;
 
+	virtual void CompileThisNodeInfo(UPZ_SkillTree_Editor* SkillTree) override;
 
 
 	virtual void OnNodeDoubleClicked() override;

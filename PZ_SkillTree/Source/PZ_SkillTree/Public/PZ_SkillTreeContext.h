@@ -6,7 +6,7 @@
 #include "UObject/NoExportTypes.h"
 
 #include "PZ_SkillTreeNodesInfo.h"
-
+#include "PZ_SkillTreeContextItemsInclude.h"
 #include "SkillTreeBlackBoard/SkillTreeBlackboardData.h"
 
 #include "PZ_SkillTreeContext.generated.h"
@@ -22,65 +22,12 @@ class UPZ_SkillTreeRUINode;
 class UPZ_SkillTreeBlackboardKeyType;
 class UPZ_SkillTreeComponent;
 
+class UPZ_SkillTreeContextItem_Base;
 
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnIsOpenChangeBind, int, SkillIndex);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLvlChangeBind, int, SkillIndex);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCanBeOpenChangeBind, int, SkillIndex);
 
-USTRUCT(BlueprintType)
-struct PZ_SKILLTREE_API FContextNodeInfo
-{
-
-	GENERATED_USTRUCT_BODY()
-
-	FContextNodeInfo() {};
-	FContextNodeInfo(UPZ_SkillTreeRBaseTreeElement* InRNode, UPZ_SkillTreeContext* InOwnerContext) :
-		RNode(InRNode),
-		OwnerContext(InOwnerContext) 
-	{};
-
-
-private:
-
-	UPZ_SkillTreeRBaseTreeElement* RNode;
-	UPZ_SkillTreeContext* OwnerContext;
-
-public:
-
-
-	int CurrentSkillLvl = 0;
-
-	bool IsOpen = false;
-
-	bool CanBeOpen = false;
-	
-	int SwichNodeCount = 0;
-
-
-	////////////Этот блок тут как попытка запретить редактирование RNode (но их отсутствие делает невозможным создание деревьев до создания контекста)/////////////// 
-	//////Вероятно, нужно будет удалить
-	UPZ_SkillTreeRBaseTreeElement const * GetRNode() const { return RNode; } ;
-	UPZ_SkillTreeRUINode const* GetRUINode() const;
-
-	void GetNextNodesInfo(TArray<FContextNodeInfo>& NodeInfoArray);
-	void GetPrevNodesInfo(TArray<FContextNodeInfo>& NodeInfoArray);
-
-	void GetNextNodesInfo_WithUI(TArray<FContextNodeInfo>& NodeInfoArray);
-	void GetPrevNodesInfo_WithUI(TArray<FContextNodeInfo>& NodeInfoArray);
-	//////////////////////////////
-
-
-	bool operator == (const FContextNodeInfo& TargetContextNodeInfo) const
-	{
-		return (RNode == TargetContextNodeInfo.RNode);
-	}
-
-	bool operator != (const FContextNodeInfo& TargetContextNodeInfo) const
-	{
-		return (RNode != TargetContextNodeInfo.RNode);
-	}
-};
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnContextExecute, int, ContextIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnContextUpdate, int, ContextIndex);
 
 
 
@@ -101,7 +48,7 @@ public:
 	UPZ_SkillTreeContext(UPZ_SkillTree_Editor* SkillTree, AActor* PlayerCharacter, UPZ_SkillTreeComponent* InSTComponent);
 
 	void InitContext(UPZ_SkillTree_Editor* SkillTree, AActor* PlayerCharacter, UPZ_SkillTreeComponent* InSTComponent);
-
+	void CreateAndLinkContextNodes(TArray<UPZ_SkillTreeRBaseTreeElement*>& CreatedNodes, UPZ_SkillTreeRBaseTreeElement* RootNode, UPZ_SkillTreeContextItem_Base* ParentContext = nullptr);
 
 
 	/** setup component for using given blackboard asset, returns true if blackboard is properly initialized for specified blackboard data */
@@ -126,21 +73,12 @@ public:
 
 
 
-	void UpdateNextNodes(UPZ_SkillTreeRBaseTreeElement* AnchorNode);
-	//void UpdateNextNode();
-	void UpdatePreviousNodes(UPZ_SkillTreeRBaseTreeElement* AnchorNode);
-	//void UpdatePreviousNode();
-
 
 
 	void ExecuteNode(UPZ_SkillTreeRBaseTreeElement* SkillNode);
 
 
 	bool CanExecuteEvent(UPZ_SkillTreeREventNode* EventNode);
-
-
-	void GetRootNodeInfos(TArray<FContextNodeInfo>& NodeInfoArray);
-	const FContextNodeInfo& GetRootUINodeInfo();
 
 
 //c++ protected methods
@@ -174,7 +112,7 @@ public:
 		bool ExecudeEventNode(FName EventNodeName);
 
 	UFUNCTION(BlueprintCallable, Category = "SkillTree|Context|Events")
-		bool CanExecuteSkillNode(UPZ_SkillTreeRSkillNode* InSkillNode);
+		bool CanExecuteSkillNode(UPZ_SkillTreeRSkillNode* InSkillNode, int Layer);
 
 	UFUNCTION(BlueprintCallable, Category = "SkillTree|Context|UI_POS")
 		FVector2D GetNodeUILocationByIndex(int NodeIndex);
@@ -188,8 +126,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "SkillTree | SkillTreeContext")
 		UPZ_SkillTreeComponent* STComponent = nullptr;
 
-	UPROPERTY(BlueprintReadOnly, Category = "SkillTree | SkillTreeContext")
-		UPZ_SkillTreeRBaseTreeElement* CurrentNode = nullptr;
 
 	UPROPERTY(BlueprintReadOnly, Category = "SkillTree | SkillTreeContext")
 		UPZ_SkillTree_Editor* ImplementSkillTree = nullptr;
@@ -197,19 +133,16 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "SkillTree | SkillTreeContext")
 		AActor* Player = nullptr;
 
-	UPROPERTY(BlueprintReadOnly, Category = "SkillTree | SkillTreeContext")
-		TMap<int, FContextNodeInfo> ContextNodeInfo;
+	UPROPERTY (BlueprintReadOnly, Category = "SkillTree | SkillTreeContext")
+		TMap<int, UPZ_SkillTreeContextItem_Base*> ContextNodeInfo2;
+
+	void OnContextExecuteProcedure(UPZ_SkillTreeContextItem_Base* InContextItem);
+	void OnContextUpdateProcedure(UPZ_SkillTreeContextItem_Base* InContextItem);
 
 
 
-
-	FOnIsOpenChangeBind OnIsOpenChangeBind;
-	FOnLvlChangeBind OnLvlChangeBind;
-	FOnCanBeOpenChangeBind OnCanBeOpenChangeBind;
-
-
-
-
+	FOnContextExecute OnContextExecute;
+	FOnContextUpdate OnContextUpdate;
 
 /////////////////////////////////////////////// BlackBoard methods ///////////////////////////////////////////////
 
